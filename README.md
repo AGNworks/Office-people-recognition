@@ -1,4 +1,4 @@
-# Office-people-recognization
+# Office-people-recognition
 
 ## About the project
 In this project I will realize a system which can detect employees at the workplace and automatically generate an excel table with time of arriving and leaving (last seen). With this system workers won't need to look into a camera to scan faces, it will use for input simply security cameras with good resolution. 
