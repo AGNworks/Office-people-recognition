@@ -2,7 +2,7 @@ import cv2
 from ultralytics import YOLO
 
 # Load the YOLOv8 model
-model = YOLO('D:\\SAJAT\\00_ML\\MY PROJECTS\\People recognization\\runs\content\\runs\detect\\train\weights\\best.pt')
+model = YOLO('runs\content\\runs\detect\\train\weights\\best.pt')
 
 # Open file 
 cap = cv2.VideoCapture(0 + cv2.CAP_DSHOW)

@@ -3,7 +3,6 @@
 
 import cv2
 from ultralytics import YOLO
-import pyttsx3
 import pandas as pd
 import datetime as dt
 
