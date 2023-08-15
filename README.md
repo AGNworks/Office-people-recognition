@@ -3,6 +3,10 @@
 ## About the project
 In this project I am creating a system which can detect employees at the workplace and automatically generate an excel table with time of arriving and leaving (last seen). With this system workers won't need to look into a camera to scan faces, it will use for input simply security cameras with good resolution. 
 
+<p align="center">
+  <img src="https://github.com/AGNworks/AGNworks.github.io/blob/main/assets/images/AI/office_small.jpg" alt="About"/>
+</p>
+
 ## Collecting data for training Neural Network
 I created a [script](https://github.com/AGNworks/Office-people-recognization/blob/main/frame_gen.py) which helps in frame generation. With the help of a text to speech [library](https://pypi.org/project/pyttsx3/) for python, we hear commands from the speaker, when the frames starting to be saved and when the process is ended. 
 
