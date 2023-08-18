@@ -9,6 +9,9 @@ import datetime as dt
 Rustam_fl = [0,0]
 Adam_fl = [0,0]
 
+today_date = dt.datetime.today()
+actual_h = today_date.hour
+
 df = pd.DataFrame(
     {
         'Hour' : [1], #for tests I will use hours instead of days 
@@ -16,7 +19,7 @@ df = pd.DataFrame(
         'Rus_l' : [3], #Rustam last seen at 13:00 for example
         'Adam_f' : [2],
         'Adam_l' : [44], 
-    }
+    }, index =  
 )
 
 today_date = dt.datetime.today()
@@ -28,39 +31,41 @@ df.Rus_l[0] = Rustam_fl[1]
 df.Adam_f[0] = Adam_fl[0]
 df.Adam_l[0] = Adam_fl[1]
 
-# Setting up the Excel writer
-writer = pd.ExcelWriter(f"office_{today_date.month}_{today_date.day}_{today_date.year}.xlsx", engine="xlsxwriter")
-df.to_excel(writer, sheet_name="Sheet1", startrow=1, header=False, index=False)
 
-workbook = writer.book
-worksheet = writer.sheets["Sheet1"]
+def write_data_toexcel(nextrow): #when calling this function need to give in which row to write the data
+    # Setting up the Excel writer
+    writer = pd.ExcelWriter(f"office_{today_date.month}_{today_date.day}_{today_date.year}.xlsx", engine="xlsxwriter")
 
-# Get the dimensions of the dataframe.
-(max_row, max_col) = df.shape
+    df.Hour[0] = actual_h
+    df.Rus_f[0] = Rustam_fl[0]
+    df.Rus_l[0] = Rustam_fl[1]
+    df.Adam_f[0] = Adam_fl[0]
+    df.Adam_l[0] = Adam_fl[1]
 
-# Create a list of column headers, to use in add_table().
-column_settings = [{"header": column} for column in df.columns]
+    sheetname = f"{today_date.month}th month"
+    df.to_excel(writer, sheet_name = sheetname, startrow=nextrow, header=False, index=False)
 
-# Add the Excel table structure. Pandas will add the data.
-worksheet.add_table(0, 0, max_row, max_col - 1, {"columns": column_settings})
+    workbook = writer.book
+    worksheet = writer.sheets[sheetname]
 
-# Make the columns wider for clarity.
-worksheet.set_column(0, max_col - 1, 12)
+    # Get the dimensions of the dataframe.
+    (max_row, max_col) = df.shape
 
-# Close the Pandas Excel writer and output the Excel file.
-writer.close()
+    # Create a list of column headers, to use in add_table().
+    column_settings = [{"header": column} for column in df.columns]
 
-""" #Speaking engine for further functions
-engine = pyttsx3.init()
-engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0')
+    # Add the Excel table structure. Pandas will add the data.
+    worksheet.add_table(0, 0, max_row, max_col - 1, {"columns": column_settings})
 
-def speaking(text):
-    engine.say(text)   #say something
-    engine.runAndWait() #run the engine and wait for it to finish """
-    
+    # Make the columns wider for clarity.
+    worksheet.set_column(0, max_col - 1, 12)
 
-""" # Load the YOLOv8 model
-model = YOLO('D:\SAJAT\\00_ML\MY PROJECTS\People recognization\\runs\content\\runs\detect\\train\weights\\best.pt')
+    # Close the Pandas Excel writer and output the Excel file.
+    writer.close()
+
+
+# Load the YOLOv8 model
+model = YOLO('runs\content\\runs\detect\\train\weights\\best.pt')
 
 # Open camera
 cap = cv2.VideoCapture(0 + cv2.CAP_DSHOW)
@@ -90,4 +95,4 @@ while cap.isOpened():
 
 # Release the video capture object and close the display window
 cap.release()
-cv2.destroyAllWindows() """
+cv2.destroyAllWindows()
