@@ -14,21 +14,11 @@ lastseen = [0,0]
 seenattime = [0,0]
 atwork = [0,0] #ad rus
 
-today_date = dt.datetime.today()
-actual_h = today_date.hour
+old_time = dt.datetime.today()
+actual_h = old_time.hour
 
 worktime = np.array([[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]])
-
 # worktime = np.append(worktime, [[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], axis=0)
-
-def write_data_tofile(worktime):
-    """Function to save the data to a csv file"""
-    DF = pd.DataFrame(worktime, columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l'])
- 
-    # save the dataframe as a csv file
-    DF.to_csv(f'office_{today_date.month}_{today_date.day}_{today_date.year}.csv')
-    display(DF)
-
 
 # Load the YOLOv8 model
 model = YOLO('runs\content\\runs\detect\\train\weights\\best.pt')
@@ -36,22 +26,23 @@ model = YOLO('runs\content\\runs\detect\\train\weights\\best.pt')
 # Open camera
 cap = cv2.VideoCapture(0 + cv2.CAP_DSHOW)
 
-# Loop through the video frames
-while cap.isOpened():
-    # Read a frame from the video
-    success, frame = cap.read()
+def write_data_tofile(worktime):
+    """Function to save the data to a csv file"""
+    DF = pd.DataFrame(worktime, columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l'])
+ 
+    # save the dataframe as a csv file
+    DF.to_csv(f'office_{old_time.month}_{old_time.day}_{old_time.year}.csv')
+    display(DF)
 
-    if success:
-        # Run YOLOv8 inference on the frame
-        results = model.predict(frame,  verbose = False)
-
-        for result in results:
+def seen_times(results):
+    '''Function to get the time, when the employee is first seen'''
+    for result in results:
             boxes = result.boxes
             for box in boxes:
                 #print(f'{box.cls} : {box.conf * 100}%')
-                if box.conf * 100 > 50:
+                if box.conf * 100 > 80: #setting up the confidence level of detecting the person
                     if box.cls == 1:
-                        seenattime[1] = float(f'{today_date.hour}.{today_date.minute}')
+                        seenattime[1] = float(f'{exact_time.hour}.{exact_time.minute}')
                         i = 1
                         if atwork[i] == 0:
                             firstseen[i] = seenattime[i]
@@ -59,14 +50,43 @@ while cap.isOpened():
                             atwork[i] = 1
                             
                     elif box.cls == 0:
-                        seenattime[0] = float(f'{today_date.hour}.{today_date.minute}')
+                        seenattime[0] = float(f'{exact_time.hour}.{exact_time.minute}')
                         i = 0
                         if atwork[i] == 0:
                             firstseen[i] = seenattime[i]
                             print(f'first seen {i} at: ', seenattime[i])
                             atwork[i] = 1
 
-        
+def lastseen_times():
+    global actual_h
+    global worktime
+    if actual_h != exact_time.hour :
+        actual_h = exact_time.hour
+
+        for i in range(len(atwork)):
+            if atwork[i] == 1:
+                print(f'last seen {i} at: ', seenattime[i])
+                lastseen[i] = seenattime[i]
+                atwork[i] = 0
+
+        worktime = np.append(worktime, [[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], axis=0)
+        write_data_tofile(worktime)
+
+
+# Loop through the video frames
+while cap.isOpened():
+    # Read a frame from the video
+    success, frame = cap.read()
+
+    exact_time = dt.datetime.today() #after every frame get the exact time
+
+    if success:
+        # Run YOLOv8 inference on the frame
+        results = model.predict(frame,  verbose = False)
+
+        seen_times(results)
+
+        lastseen_times()
                 
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
@@ -80,14 +100,6 @@ while cap.isOpened():
     else:
         # Break the loop if the end of the video is reached
         break
-
-for i in range(len(atwork)):
-    if atwork[i] == 1:
-        print(f'last seen {i} at: ', seenattime[i])
-        lastseen[i] = seenattime[i]
-
-worktime = np.append(worktime, [[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], axis=0)
-write_data_tofile(worktime)
 
 
 # Release the video capture object and close the display window
