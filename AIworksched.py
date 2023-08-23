@@ -1,5 +1,6 @@
 #This script should fill out excel table with the time of arriving and leaving of employees in the office
 #With the help of YOLOv8 model we will detect human and save the time of arrival and leave
+#In this version I will test with hours instead of days, and days will be instead of months, in this way it is easier to test the work of this system, but the logic is the same with days and months
 
 import cv2
 from IPython.display import display
@@ -7,6 +8,7 @@ from ultralytics import YOLO
 import pandas as pd
 import datetime as dt
 import numpy as np
+import os
 
 firstseen = [0,0]
 lastseen = [0,0]
@@ -26,16 +28,38 @@ model = YOLO('runs\content\\runs\detect\\train\weights\\best.pt')
 # Open camera
 cap = cv2.VideoCapture(0 + cv2.CAP_DSHOW)
 
-def write_data_tofile(worktime):
-    """Function to save the data to a csv file"""
-    DF = pd.DataFrame(worktime, columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l'])
- 
+def write_firstdata_tofile():
+    """Function to save the data of arrival
+      to a csv file"""
+
+    if os.path.exists(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv'): #if we have already that file...
+        df = pd.read_csv(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv', index_col= 0) #we will read it and ...
+        df.loc[len(df)] = [actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]] #add new row to df.
+    else:
+        df = pd.DataFrame([[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l']) #create the df
+
     # save the dataframe as a csv file
-    DF.to_csv(f'office_{old_time.month}_{old_time.day}_{old_time.year}.csv')
-    display(DF)
+    df.to_csv(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv')
+    display(df)
+
+def write_lastdata_tofile():
+    """Function to save the data of leave 
+      to a csv file"""
+
+    if os.path.exists(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv'): #if we have already that file...
+        df = pd.read_csv(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv', index_col= 0) #we will read it and ...
+        df.loc[len(df)] = [actual_h - 1, firstseen[0], lastseen[0], firstseen[1], lastseen[1]] #add new row to df.
+    else:
+        df = pd.DataFrame([[actual_h - 1, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l']) #create the df
+
+    # save the dataframe as a csv file
+    df.to_csv(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv')
+    display(df)
 
 def seen_times(results):
-    '''Function to get the time, when the employee is first seen'''
+    '''Function to get the time,
+      when the employee is first seen'''
+
     for result in results:
             boxes = result.boxes
             for box in boxes:
@@ -48,6 +72,7 @@ def seen_times(results):
                             firstseen[i] = seenattime[i]
                             print(f'first seen {i} at: ', seenattime[i])
                             atwork[i] = 1
+                            write_firstdata_tofile()
                             
                     elif box.cls == 0:
                         seenattime[0] = float(f'{exact_time.hour}.{exact_time.minute}')
@@ -56,8 +81,11 @@ def seen_times(results):
                             firstseen[i] = seenattime[i]
                             print(f'first seen {i} at: ', seenattime[i])
                             atwork[i] = 1
+                            write_firstdata_tofile()
 
 def lastseen_times():
+    '''Function to get the time,
+      when the employee is last seen'''
     global actual_h
     global worktime
     if actual_h != exact_time.hour :
@@ -69,8 +97,8 @@ def lastseen_times():
                 lastseen[i] = seenattime[i]
                 atwork[i] = 0
 
-        worktime = np.append(worktime, [[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], axis=0)
-        write_data_tofile(worktime)
+        
+        write_lastdata_tofile()
 
 
 # Loop through the video frames
