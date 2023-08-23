@@ -34,7 +34,13 @@ def write_firstdata_tofile():
 
     if os.path.exists(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv'): #if we have already that file...
         df = pd.read_csv(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv', index_col= 0) #we will read it and ...
-        df.loc[len(df)] = [actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]] #add new row to df.
+        if actual_h not in df.loc[:, 'time'].values:
+            df.loc[len(df)] = [actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]] #add new row to df.
+        else:
+            if df.loc[len(df)-1, 'Ad_f' ] == 0:  #check not to overwrite already registrated data
+                df.loc[len(df)-1, 'Ad_f' ] = firstseen[0]
+            if df.loc[len(df)-1, 'Rus_f' ] == 0:
+                df.loc[len(df)-1, 'Rus_f' ] = firstseen[1]
     else:
         df = pd.DataFrame([[actual_h, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l']) #create the df
 
@@ -48,7 +54,8 @@ def write_lastdata_tofile():
 
     if os.path.exists(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv'): #if we have already that file...
         df = pd.read_csv(f'tables\office_{exact_time.month}_{exact_time.day}_{exact_time.year}.csv', index_col= 0) #we will read it and ...
-        df.loc[len(df)] = [actual_h - 1, firstseen[0], lastseen[0], firstseen[1], lastseen[1]] #add new row to df.
+        df.loc[len(df)-1, 'Ad_l' ] = lastseen[0]
+        df.loc[len(df)-1, 'Rus_l' ] = lastseen[1]
     else:
         df = pd.DataFrame([[actual_h - 1, firstseen[0], lastseen[0], firstseen[1], lastseen[1]]], columns=['time', 'Ad_f', 'Ad_l', 'Rus_f', 'Rus_l']) #create the df
 
@@ -88,6 +95,8 @@ def lastseen_times():
       when the employee is last seen'''
     global actual_h
     global worktime
+    global firstseen
+    global lastseen
     if actual_h != exact_time.hour :
         actual_h = exact_time.hour
 
@@ -99,6 +108,8 @@ def lastseen_times():
 
         
         write_lastdata_tofile()
+        firstseen = [0,0]
+        lastseen = [0,0]
 
 
 # Loop through the video frames
